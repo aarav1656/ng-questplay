@@ -1,64 +1,110 @@
-use src::sorcerer::{Sorcerer, SorcererTrait, Talent};
+use src::sorcerer::Sorcerer;
+use src::sorcerer::Talent;
 
 fn duel(ref sorcerer1: Sorcerer, ref sorcerer2: Sorcerer) {
-    let mut guardian1_used = false;
-    let mut guardian2_used = false;
+    // IMPLEMENT THIS FUNCTION
 
-    loop {
-        // Calculate damages
-        let mut damage1 = sorcerer1.attack();
-        let mut damage2 = sorcerer2.attack();
+    let mut condition1 : u8 = 0;
+    let mut condition2 : u8 = 0;
 
-        // Apply Swift talent effect
-        if let Talent::Swift(_) = sorcerer1.talent {
-            if damage2 > 0 && damage2 < 4 {
-                damage2 = 1;
-            }
-        }
-        if let Talent::Swift(_) = sorcerer2.talent {
-            if damage1 > 0 && damage1 < 4 {
-                damage1 = 1;
-            }
-        }
-
-        // Apply Guardian talent effect
-        if let Talent::Guardian(_) = sorcerer1.talent {
-            if !guardian1_used {
-                damage2 = 0;
-                guardian1_used = true;
-            }
-        }
-        if let Talent::Guardian(_) = sorcerer2.talent {
-            if !guardian2_used {
-                damage1 = 0;
-                guardian2_used = true;
-            }
-        }
-
-        // Apply damages and update health
-        let new_health1 = if damage2 >= sorcerer1.health() { 0 } else { sorcerer1.health() - damage2 };
-        let new_health2 = if damage1 >= sorcerer2.health() { 0 } else { sorcerer2.health() - damage1 };
-
-        // Apply Venomous talent effect and update attack
-        let new_attack1 = if let Talent::Venomous(_) = sorcerer1.talent {
-            if new_health1 > 0 { sorcerer1.attack() + 1 } else { sorcerer1.attack() }
-        } else {
-            sorcerer1.attack()
-        };
-
-        let new_attack2 = if let Talent::Venomous(_) = sorcerer2.talent {
-            if new_health2 > 0 { sorcerer2.attack() + 1 } else { sorcerer2.attack() }
-        } else {
-            sorcerer2.attack()
-        };
-
-        // Update sorcerer states
-        sorcerer1 = SorcererTrait::new(new_attack1, new_health1);
-        sorcerer2 = SorcererTrait::new(new_attack2, new_health2);
-
-        // Check if the duel is over
-        if new_health1 == 0 || new_health2 == 0 {
-            break;
-        }
+    match sorcerer1.talent {
+        Talent::Talentless(_) => {
+         },
+        Talent::Venomous(_) => {
+            condition1 = 1;
+         },
+        Talent::Swift(_) => {
+            condition1 = 2;
+        },
+        Talent::Guardian(_) => {
+            condition1 = 3;
+         },
     }
+
+    match sorcerer2.talent {
+        Talent::Talentless(_) => {
+         },
+        Talent::Venomous(_) => {
+            condition2 = 1;
+         },
+        Talent::Swift(_) => {
+            condition2 = 2;
+        },
+        Talent::Guardian(_) => {
+            condition2 = 3;
+         },
+    }
+
+    // validate Swift talent
+    if condition1 == 2 {
+       if sorcerer2.attack < 4 {
+            sorcerer2.attack = 1;
+       }
+    }
+    if condition2 == 2 {
+        if sorcerer1.attack < 4 {
+             sorcerer1.attack = 1;
+        }
+     }
+
+    let mut counter : u8 = 0;
+
+    let initAt1 = sorcerer1.attack;
+    let initAt2 = sorcerer2.attack;
+    
+    while sorcerer1.health > 0 && sorcerer2.health > 0 {
+
+         // validate Guardian talent
+        if condition1 == 3 {
+            if sorcerer1.hasBeenDamaged == false{
+                sorcerer1.hasBeenDamaged = true;
+                if counter == 0 {
+                    sorcerer2.attack = 0;
+                }
+            }
+        }
+        if condition2 == 3 {
+            if sorcerer2.hasBeenDamaged == false{
+                sorcerer2.hasBeenDamaged = true;
+                if counter == 0 {
+                    sorcerer1.attack = 0;
+                }
+            }
+        }
+
+        // exec the attackt
+        sorcerer1.health = saturating_sub(sorcerer1.health, sorcerer2.attack);
+        sorcerer2.health = saturating_sub(sorcerer2.health, sorcerer1.attack);
+
+        if condition1 == 3 {
+            if counter == 0 {
+                sorcerer2.attack = initAt2;
+            }
+        }
+        if condition2 == 3 {
+            if counter == 0 {
+                sorcerer1.attack = initAt1;
+            }
+        }
+        
+        
+        // validate Venomous talent
+        if condition1 == 1 {
+            sorcerer1.attack += 1;
+        }
+        if condition2 == 1 {
+            sorcerer2.attack += 1;
+        }
+        
+        counter += 1;
+    
+    };
+
+}
+
+fn saturating_sub(a: u8, b: u8) -> u8 {
+    if a < b {
+        return 0;
+    }
+    a - b
 }

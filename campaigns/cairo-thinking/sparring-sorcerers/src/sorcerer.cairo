@@ -2,6 +2,7 @@
 struct Sorcerer {
     attack: u8,
     health: u8,
+    hasBeenDamaged: bool,
     talent: Talent
 }
 
@@ -21,6 +22,7 @@ impl SorcererImpl of SorcererTrait {
         Sorcerer {
             attack: attack,
             health: health,
+            hasBeenDamaged: false,
             talent: Talent::Talentless(())
         }
     }
@@ -30,6 +32,7 @@ impl SorcererImpl of SorcererTrait {
         Sorcerer {
             attack: attack,
             health: health,
+            hasBeenDamaged: false,
             talent: talent
         }
     }
